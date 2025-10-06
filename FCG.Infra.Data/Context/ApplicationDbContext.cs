@@ -10,6 +10,7 @@ namespace FCG.Infra.Data.Context
         public ApplicationDbContext(DbContextOptions options) : base(options) { }
         public DbSet<Pagamento> Pagamento { get; set; }
         public DbSet<PagamentoDetalhe> PagamentoDetalhe { get; set; }
+        public DbSet<StoredEvent> StoredEvent { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder builder)

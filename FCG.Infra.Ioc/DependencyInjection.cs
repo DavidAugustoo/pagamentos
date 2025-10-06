@@ -2,8 +2,10 @@
 using FCG.Application.Mappings;
 using FCG.Application.Services;
 using FCG.Domain.Entities;
+using FCG.Domain.EventSourcing;
 using FCG.Domain.Interfaces;
 using FCG.Infra.Data.Context;
+using FCG.Infra.Data.EventSourcing;
 using FCG.Infra.Data.Repositories;
 using FCG.Infra.Data.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -52,6 +54,8 @@ namespace FCG.Infra.Ioc
             services.AddAutoMapper(typeof(EntitiesToDTOMappingProfile));
 
             services.AddScoped<IPagamentoRepository, PagamentoRepository>();
+            services.AddScoped<IEventStoreRepository, EventStoreRepository>();
+            services.AddScoped<IEventPublisher, EventPublisher>();
             services.AddScoped<IPagamentoService,PagamentoService>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();           
 
