@@ -150,9 +150,16 @@ O objetivo é validar as principais regras de negócio críticas da aplicação 
 
 Acesse `https://localhost:7188/swagger/index.html` para visualizar e testar todos os endpoints disponíveis via Swagger.
 
+## 💾 Persistência de pagamentos e eventos
+
+- As operações de pagamento são persistidas no banco por meio do `PagamentoRepository.Efetuar`, que adiciona o agregado ao `ApplicationDbContext`. A chamada subsequente para `UnitOfWork.Commit` garante que o `SaveChangesAsync` seja executado, confirmando a escrita da transação.
+- Cada etapa do fluxo event-driven dispara um evento específico (`PagamentoIniciadoEvent`, `PagamentoProcessandoEvent`, `PagamentoConcluidoEvent`). O `EventPublisher` serializa os dados e utiliza o `EventStoreRepository` para gravá-los na tabela `StoredEvent`, preservando um histórico auditável.
+- Antes de registrar um novo evento, o repositório calcula a próxima versão com base nos registros existentes do mesmo agregado, assegurando ordenação sequencial para reconstruções futuras.
+- Consulte o guia [Fluxo Event-Driven de Pagamentos](docs/fluxo-event-driven-pagamentos.md) para uma explicação detalhada, passo a passo, dos componentes e conceitos utilizados nesse processo.
+
 ## 👨‍💻 Autor
 
-**Vinícius Breda Silva**, 
-**David Augusto de Andrade Ribeiro**, 
+**Vinícius Breda Silva**,
+**David Augusto de Andrade Ribeiro**,
 **Lucas Dantas dos Santos** e 
 **Nasser Souza Almeida**
