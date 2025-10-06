@@ -1,0 +1,83 @@
+﻿O que é Unit Of Work
+
+Unit of Work é um padrão de design que tem como principal objetivo manter o controle de todas as operações que afetam o banco de dados, 
+garantindo que essas operações sejam executadas em uma única transação. 
+Isso significa que todas as mudanças no banco de dados são feitasde forma atômica: 
+ou todas as operações são bem-sucedidas e confirmadas (commit);
+ou todas são revertidas (rollback) em caso de falha;
+
+Entity Framework Core gerencia transações automaticamente para operações individuais. No entanto, se você estiver realizando várias operações que precisam ser tratadas como uma única unidade atômica de trabalho (ou seja, todas as operações devem ser bem-sucedidas ou nenhuma deve ser aplicada), você precisará gerenciar a transação explicitamente.
+
+Quando usar BeginTransaction
+Você deve usar BeginTransaction quando precisar garantir que um conjunto de operações seja tratado de forma transacional. Isso é útil em cenários como:
+
+Operações que envolvem várias tabelas e precisam ser consistentes.
+Garantir que todas as operações dentro de uma transação sejam confirmadas ou revertidas juntas.
+Gerenciar transações manualmente para cenários complexos.
+
+Conceitos Principais
+
+1 - Transacoes
+	O Unit of Work gerencia transações. Ele inicia uma transação quando uma operação começa, 
+mantém o controle de todas as operações de criação, leitura, atualização e exclusão (CRUD) realizadas durante a transação, 
+e finaliza a transação ao final, confirmando ou revertendo as mudanças conforme necessário.
+
+2 - Controle de Conexões
+	Ele gerencia a conexão com o banco de dados, garantindo que a conexão seja aberta e fechada de forma adequada.
+
+3 - Coesão e Isolamento
+	Ele mantém a coesão das operações realizadas durante uma transação e isola essas operações até que a transação seja confirmada, 
+	evitando inconsistências no banco de dados.
+
+4 - Rollback Automático
+	Em caso de erro, ele garante que todas as operações realizadas até aquele ponto sejam revertidas, mantendo a integridade do banco de dados.
+
+Benefícios do Unit of Work:
+
+1 - Consistência de Dados: Garante que todas as mudanças em uma transação sejam confirmadas ou revertidas juntas, mantendo a consistência dos dados.
+2 - Isolamento: Mantém as operações de banco de dados isoladas umas das outras até que sejam confirmadas, evitando que mudanças parciais afetem outras operações.
+3 - Facilidade de Manutenção: Centraliza a lógica de transação em um único lugar, facilitando a manutenção e o entendimento do código.
+4 - Simplificação do Código: Simplifica a lógica de confirmação e reversão de transações, evitando duplicação de código de controle de transações em diferentes partes da aplicação.
+
+Implementação Típica
+A implementação de Unit of Work geralmente envolve a definição de uma interface (IUnitOfWork) e uma classe concreta (UnitOfWork). 
+A interface define os métodos para iniciar, confirmar e reverter transações. 
+A classe concreta implementa esses métodos, utilizando um contexto de banco de dados (como DbContext no Entity Framework).
+
+public interface IUnitOfWork : IDisposable
+{
+    Task BeginTransactionAsync();
+    Task CommitAsync();
+    Task RollbackAsync();
+}
+
+public class UnitOfWork : IUnitOfWork
+{
+    private readonly ApplicationDbContext _context;
+    private IDbContextTransaction _transaction;
+
+    public UnitOfWork(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task BeginTransactionAsync()
+    {
+        _transaction = await _context.Database.BeginTransactionAsync();
+    }
+
+    public async Task CommitAsync()
+    {
+        await _transaction.CommitAsync();
+    }
+
+    public async Task RollbackAsync()
+    {
+        await _transaction.RollbackAsync();
+    }
+
+    public void Dispose()
+    {
+        _transaction?.Dispose();
+    }
+}
